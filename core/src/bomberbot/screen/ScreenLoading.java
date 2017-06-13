@@ -81,6 +81,7 @@ public class ScreenLoading extends ScreenBasic
         Globals.assets.load("texture/bombButton.png", Texture.class);
         Globals.assets.load("texture/pukick.png", Texture.class);
         Globals.assets.load("texture/pufire.png", Texture.class);
+        Globals.assets.load("texture/noTexture.png", Texture.class);
         Globals.assets.load("texture/pugoldenfire.png", Texture.class);
         Globals.assets.load("texture/puspeed.png", Texture.class);
         Globals.assets.load("texture/firetest.png", Texture.class);

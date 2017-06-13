@@ -27,7 +27,13 @@ public class Globals
 
     public static Texture getTexture(String name)
     {
-        return assets.get("texture/" + name + ".png", Texture.class);
+        try
+        {
+            return assets.get("texture/" + name + ".png", Texture.class);
+        } catch (Exception e)
+        {
+            return assets.get("texture/noTexture.png", Texture.class);
+        }
     }
 
     public static void draw(String name, float pX, float pY)

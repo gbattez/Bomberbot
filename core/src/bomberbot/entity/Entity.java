@@ -98,8 +98,9 @@ public abstract class Entity
     {
         if (textureSrc != null)
         {
-            Globals.draw(textureSrc, pX - Globals.BLOCK_WIDTH/2, pY - Globals.BLOCK_HEIGHT/2);
+            Globals.draw(textureSrc, pX - Globals.BLOCK_WIDTH / 2, pY - Globals.BLOCK_HEIGHT / 2);
         }
+
         if(drawDebug)
         {
             Globals.draw("firetest", pX, pY);
