@@ -68,7 +68,7 @@ public class EntityFire extends Entity
             propagated = true;
         }
 
-        if(this.ticks > 0.15f)
+        if(this.ticks > 0.14f)
         {
             this.deleteEntity();
         }

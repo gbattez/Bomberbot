@@ -11,8 +11,8 @@ public class EntityBlock extends Entity
 
     //COMMONDROPPERCENTAGE + RAREDROPPERCENTAGE ne doit pas dépasser 100
     //Le pourcentage de drop épique = 100 - l'addition des deux valeurs
-    private final int COMMONDROPPERCENTAGE = 70;
-    private final int RAREDROPPERCENTAGE = 25;
+    private final int COMMONDROPPERCENTAGE = 80;
+    private final int RAREDROPPERCENTAGE = 17;
 
     public EntityBlock(bomberbot.EnumBlockMaterial material, int pX, int pY)
     {

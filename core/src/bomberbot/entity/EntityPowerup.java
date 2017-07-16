@@ -57,9 +57,9 @@ public class EntityPowerup extends Entity
                 case BOMB : bomberbot.addBomb(); bomberbot.addMaxBomb(); break;
                 case SPEED: bomberbot.addMoveSpeed(); break;
                 case KICK: bomberbot.setCanKickBomb(true); break;
-                case GOLDENFIRE: bomberbot.setMaxFirePower(); break;
+                case GOLDENFIRE: bomberbot.addGoldenFirePower(); break;
                 case CHAINBOMB: bomberbot.setCanChainBomb(true); break;
-                case BOMBSKULL: bomberbot.setHasSkullBomb(true); break;
+                case BOMBSKULL: bomberbot.addSkullBomb(); break;
             }
         }
     }

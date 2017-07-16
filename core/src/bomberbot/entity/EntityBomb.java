@@ -49,7 +49,7 @@ public class EntityBomb extends Entity
     {
         if(skullBomb)
         {
-            int firePower = owner.getFirePower() >= 15 ? 3 : 2;
+            int firePower = 2 + owner.getFirePower()/15;
 
             for(int i = -firePower; i < firePower + 1; i++)
             {
@@ -68,6 +68,8 @@ public class EntityBomb extends Entity
         if(this.owner != null)
         {
             this.owner.addBomb();
+            if(this.skullBomb)
+                this.owner.addSkullBomb();
         }
         Globals.playSound(this.skullBomb ? "explodeskull" : "explode", 0.8f, 0.8f + rand.nextFloat() * 0.4f);
    }
