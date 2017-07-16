@@ -24,17 +24,22 @@ import bomberbot.entity.EntityBlock;
 import bomberbot.entity.EntityBomb;
 import bomberbot.entity.EntityBomberbot;
 import bomberbot.entity.EntityAI;
+import bomberbot.entity.EntityGiftBomb;
 import bomberbot.entity.EntityPlayer;
 import bomberbot.EnumBlockMaterial;
 import bomberbot.main.Main;
+import jdk.nashorn.internal.objects.Global;
 
-/**
- * ça fait des trucs
- **/
 public class ScreenIngame extends ScreenBasic
 {
     public static ParticleEffect fireEffect;
     public static ParticleEffectPool fireEffectPool;
+    public static ParticleEffect sparkeEffect;
+    public static ParticleEffectPool sparkeEffectPool;
+    public static ParticleEffect popEffect;
+    public static ParticleEffectPool popEffectPool;
+    public static ParticleEffect giftExplodeEffect;
+    public static ParticleEffectPool giftExplodeEffectPool;
     public static Array<PooledEffect> effects;
     public static Node[][] nodes = new Node[20][11];
     public static EntityPlayer player;
@@ -42,17 +47,19 @@ public class ScreenIngame extends ScreenBasic
     public static Table ingameTable;
     public static boolean showControls;
     public static boolean isChallengeMode;
+    private boolean paused;
     private VirtualJoystick virtualJoystick;
     private BombButton bombButton;
     private ShapeRenderer shapeRenderer;
     public static BitmapFont font = new BitmapFont();
     private float timer;
+    private float gameFinishedTimer;
     private float bombTimer;
-    private boolean paused;
+    private float flashOverlayAlpha;
+    private float giftBombTimer;
     public static byte aiNumber;
     private byte aiNumberToSpawn;
-    private boolean prevGameFinished;
-    private float flashOverlayAlpha;
+    public static int bricks;
     private Random rand = new Random();
     private ButtonBasic buttonPause;
     private ButtonBasic buttonResume;
@@ -66,52 +73,45 @@ public class ScreenIngame extends ScreenBasic
     public ScreenIngame(Main game)
     {
         super(game);
-        font.getData().setScale(3);
         aiNumberToSpawn = aiNumber = 1;
-        ingameTable = new Table();
-        ingameStage = new Stage(this.gamePort, Globals.batch);
-        Gdx.input.setInputProcessor(ingameStage);
-        Globals.music = Globals.getMusic("music");
-        Globals.music.setLooping(true);
-        initLevel();
-        fireEffect = new ParticleEffect();
-        fireEffect.load(Gdx.files.internal("fire.p"), Gdx.files.internal(""));
-        fireEffect.start();
-        fireEffectPool = new ParticleEffectPool(fireEffect, 0, 100);
-        effects = new Array<PooledEffect>();
-
-        virtualJoystick = new VirtualJoystick();
-        bombButton = new BombButton();
-        shapeRenderer = new ShapeRenderer();
-        buttonPause = new ButtonBasic(Globals.BLOCK_WIDTH*19, Globals.BLOCK_HEIGHT*10, Globals.BLOCK_WIDTH, Globals.BLOCK_HEIGHT);
-        buttonPause.setTextureSrc("pauseButton", false);
-        buttonResume = new ButtonBasic(Globals.camera.viewportWidth/2 + Globals.BLOCK_WIDTH, Globals.BLOCK_HEIGHT*8, "Resume");
-        buttonNextLevel = new ButtonBasic(Globals.camera.viewportWidth/2 + Globals.BLOCK_WIDTH, Globals.BLOCK_HEIGHT*8, "Next Level");
-        buttonRetry = new ButtonBasic(Globals.camera.viewportWidth/2 + Globals.BLOCK_WIDTH, 0, "Retry");
-        buttonReplay = new ButtonBasic(Globals.camera.viewportWidth/2 + Globals.BLOCK_WIDTH, 0, "Replay");
-        buttonMusic = new ButtonBasic(Globals.camera.viewportWidth/2 - 20 + 510/2 - 120, 0);
-        buttonMusic.setTextureSrc("music_on", true);
-        buttonSound = new ButtonBasic(Globals.camera.viewportWidth/2 - 20 + 510/2 + 120, 0);
-        buttonSound.setTextureSrc("volume_on", true);
-        buttonExit = new ButtonBasic(Globals.camera.viewportWidth/2 + Globals.BLOCK_WIDTH, 0, "Exit");
-        buttonExit.setTextureSrc("button_red", false);
+        init();
     }
 
     public ScreenIngame(Main game, byte aiNumberToSpawn)
     {
         super(game);
-        font.getData().setScale(3);
         this.aiNumberToSpawn = aiNumber = aiNumberToSpawn;
+        init();
+    }
+
+    public void init()
+    {
+        font.getData().setScale(3);
         ingameTable = new Table();
         ingameStage = new Stage(this.gamePort, Globals.batch);
         Gdx.input.setInputProcessor(ingameStage);
         Globals.music = Globals.getMusic("music");
         Globals.music.setLooping(true);
         initLevel();
+
         fireEffect = new ParticleEffect();
         fireEffect.load(Gdx.files.internal("fire.p"), Gdx.files.internal(""));
         fireEffect.start();
         fireEffectPool = new ParticleEffectPool(fireEffect, 0, 100);
+        sparkeEffect = new ParticleEffect();
+        sparkeEffect.load(Gdx.files.internal("sparkles.p"), Gdx.files.internal(""));
+        sparkeEffect.start();
+        sparkeEffectPool = new ParticleEffectPool(sparkeEffect, 0, 100);
+        popEffect = new ParticleEffect();
+        popEffect.load(Gdx.files.internal("pop.p"), Gdx.files.internal(""));
+        popEffect.start();
+        popEffectPool = new ParticleEffectPool(popEffect, 0, 100);
+        giftExplodeEffect = new ParticleEffect();
+        giftExplodeEffect.load(Gdx.files.internal("giftExplode.p"), Gdx.files.internal(""));
+        giftExplodeEffect.start();
+        giftExplodeEffectPool = new ParticleEffectPool(giftExplodeEffect, 0, 100);
+
+
         effects = new Array<PooledEffect>();
 
         virtualJoystick = new VirtualJoystick();
@@ -143,7 +143,9 @@ public class ScreenIngame extends ScreenBasic
 
     public void initLevel()
     {
-        this.prevGameFinished = false;
+        this.bricks = 0;
+        this.giftBombTimer = -1;
+        this.gameFinishedTimer = 0;
         if(Globals.musicEnabled)
         {
             Globals.music.setVolume(0.2f);
@@ -177,6 +179,7 @@ public class ScreenIngame extends ScreenBasic
 
     public void createTerrain()
     {
+        this.bricks = 0;
         for(int i = 0; i < 20; i++)
         {
             for (int j = 0; j < 11; j++)
@@ -195,6 +198,7 @@ public class ScreenIngame extends ScreenBasic
                     } else
                     {
                         material = EnumBlockMaterial.BRICK;
+                        this.bricks ++;
                     }
                 }
                 new EntityBlock(material, i, j).spawnEntity();
@@ -270,11 +274,13 @@ public class ScreenIngame extends ScreenBasic
     public void prepareSpawnPoint(EntityBomberbot bbot)
     {
         new EntityBlock(EnumBlockMaterial.GRASS, bbot.getPbX(), bbot.getPbY()).spawnEntity();
+        bricks --;
         for(bomberbot.Node n : bbot.getAdjacentNodes())
         {
-            if(n.getBlockOn().getMaterial() != EnumBlockMaterial.METAL)
+            if(n.getBlockOn().getMaterial() == EnumBlockMaterial.BRICK)
             {
                 new EntityBlock(EnumBlockMaterial.GRASS, n.getnX(), n.getnY()).spawnEntity();
+                bricks --;
             }
         }
     }
@@ -323,7 +329,7 @@ public class ScreenIngame extends ScreenBasic
             virtualJoystick.render(gamePort);
         }
         Globals.batch.end();
-        if(isGameFinished() || paused)
+        if(gameFinishedTimer > 1.3f || paused)
         {
             renderOverlay();
         }
@@ -335,15 +341,6 @@ public class ScreenIngame extends ScreenBasic
         if(paused)
         {
             renderPausePopup();
-        }
-        if(isGameFinished())
-        {
-            if(this.prevGameFinished != isGameFinished())
-            {
-                flashOverlayAlpha = 0.5f;
-                this.prevGameFinished = true;
-            }
-            renderFlashOverlay(!player.isDead(), delta);
         }
         Globals.batch.end();
 
@@ -440,9 +437,24 @@ public class ScreenIngame extends ScreenBasic
 
         Gdx.input.setCursorCatched(!(this.isGameFinished() || this.paused));
 
-        if(buttonPause.onClick(gamePort))
+        if(buttonPause.onClick(gamePort) || this.gameFinishedTimer > 1.3f)
         {
             paused = true;
+        }
+
+        if(!isTimeOut() && this.bricks <= 0)
+        {
+            if(this.giftBombTimer == -1)
+            {
+                this.giftBombTimer = 19 + rand.nextFloat()*8;
+            } else if (this.giftBombTimer < 0)
+            {
+                new EntityGiftBomb(11, 5).spawnEntity();
+                this.giftBombTimer = 19 + rand.nextFloat()*8;
+            } else if(!paused)
+            {
+                this.giftBombTimer -= delta;
+            }
         }
         if(buttonMusic.onClick(gamePort))
         {
@@ -537,14 +549,21 @@ public class ScreenIngame extends ScreenBasic
             Node node = nodes[pX][pY];
             if(!node.isBlocked() && node.getBomb() == null && bombTimer <= 0)
             {
-                new EntityBomb(pX, pY, (byte) 2).spawnEntity();
-                bombTimer = 0.5f;
+                new EntityBomb(pX, pY, (byte) 3).spawnEntity();
+
+              //  if(ScreenIngame.popEffectPool!= null) {
+                    ParticleEffectPool.PooledEffect popEffect = ScreenIngame.popEffectPool.obtain();
+                    popEffect.setPosition(pX * Globals.BLOCK_WIDTH + Globals.BLOCK_WIDTH / 2, pY * Globals.BLOCK_HEIGHT + Globals.BLOCK_HEIGHT / 2);
+                    ScreenIngame.effects.add(popEffect);
+                    Globals.playSound("pop", 0.65f, 1f + rand.nextFloat() * 0.1f);
+               // }
+                bombTimer = 0.4f;
             }
         }
 
         if(this.isGameFinished())
         {
-            this.paused = true;
+            this.gameFinishedTimer += delta;
         }
     }
 
@@ -553,5 +572,8 @@ public class ScreenIngame extends ScreenBasic
     {
         super.dispose();
         fireEffect.dispose();
+        sparkeEffect.dispose();
+        popEffect.dispose();
+        giftExplodeEffect.dispose();
     }
 }

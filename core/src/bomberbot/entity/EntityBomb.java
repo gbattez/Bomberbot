@@ -15,9 +15,9 @@ public class EntityBomb extends Entity
     private float texAddHeight = 0;
     private byte power;
 
-    public EntityBomb(int pX, int pY, EntityBomberbot owner)
+    public EntityBomb(int pbX, int pbY, EntityBomberbot owner)
     {
-        super(pX, pY);
+        super(pbX, pbY);
         this.textureSrc = "bomb";
         this.enableTicks = true;
         this.owner = owner;
@@ -27,9 +27,9 @@ public class EntityBomb extends Entity
         this.power = owner.getFirePower();
     }
 
-    public EntityBomb(int pX, int pY, byte power)
+    public EntityBomb(int pbX, int pbY, byte power)
     {
-        super(pX, pY);
+        super(pbX, pbY);
         this.textureSrc = "bomb";
         this.enableTicks = true;
         this.owner = null;

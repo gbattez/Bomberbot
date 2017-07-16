@@ -9,11 +9,6 @@ public class EntityBlock extends Entity
 {
     private bomberbot.EnumBlockMaterial material;
 
-    //COMMONDROPPERCENTAGE + RAREDROPPERCENTAGE ne doit pas dépasser 100
-    //Le pourcentage de drop épique = 100 - l'addition des deux valeurs
-    private final int COMMONDROPPERCENTAGE = 80;
-    private final int RAREDROPPERCENTAGE = 17;
-
     public EntityBlock(bomberbot.EnumBlockMaterial material, int pX, int pY)
     {
         super(pX, pY);
@@ -34,28 +29,6 @@ public class EntityBlock extends Entity
         this.setMovementBlocker(material.isMovementBlocker());
     }
 
-    public EnumPowerup getRandomPowerup()
-    {
-        int rarityRoll = rand.nextInt(100);
-
-        EnumPowerup powerupToDrop = null;
-
-        if(rarityRoll < COMMONDROPPERCENTAGE)
-        {
-            powerupToDrop = EnumPowerup.COMMONPOWERUPS.get(rand.nextInt(EnumPowerup.COMMONPOWERUPS.size()));
-        }
-        else if(rarityRoll < COMMONDROPPERCENTAGE + RAREDROPPERCENTAGE)
-        {
-            powerupToDrop = EnumPowerup.RAREPOWERUPS.get(rand.nextInt(EnumPowerup.RAREPOWERUPS.size()));
-        }
-        else
-        {
-            powerupToDrop = EnumPowerup.EPICPOWERUPS.get(rand.nextInt(EnumPowerup.EPICPOWERUPS.size()));
-        }
-
-        return powerupToDrop;
-    }
-
     public void spawnEntity()
     {
         this.nodeOn.setBlockOn(this);
@@ -74,12 +47,13 @@ public class EntityBlock extends Entity
         onDeath();
     }
 
+    @Override
     public void onDeath()
     {
         this.enableTicks = true;
         if(Math.random() < 0.7f)
         {
-            new EntityPowerup(getPbX(), getPbY(), getRandomPowerup()).spawnEntity();
+            new EntityPowerup(getPbX(), getPbY()).spawnEntity();
         }
 
         ParticleEffectPool.PooledEffect effect = ScreenIngame.fireEffectPool.obtain();
@@ -88,6 +62,7 @@ public class EntityBlock extends Entity
         effect.setPosition(this.pX, this.pY);
         ScreenIngame.effects.add(effect);
         this.textureSrc = "blockgrass";
+        ScreenIngame.bricks --;
     }
 
     @Override
