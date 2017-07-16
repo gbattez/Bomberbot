@@ -12,8 +12,8 @@ import bomberbot.net.User;
 
 public class Globals
 {
-    public static boolean soundEnabled = false;
-    public static boolean musicEnabled = false;
+    public static boolean soundEnabled = true;
+    public static boolean musicEnabled = true;
     public static Music music = null;
     public static OrthographicCamera camera = new OrthographicCamera();
     public static AssetManager assets;
