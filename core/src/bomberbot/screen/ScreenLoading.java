@@ -66,6 +66,7 @@ public class ScreenLoading extends ScreenBasic
     private void queueAssets()
     {
         Globals.assets.load("texture/bomb.png", Texture.class);
+        Globals.assets.load("texture/giftBomb.png", Texture.class);
         Globals.assets.load("texture/music_on.png", Texture.class);
         Globals.assets.load("texture/music_off.png", Texture.class);
         Globals.assets.load("texture/volume_off.png", Texture.class);
@@ -98,7 +99,9 @@ public class ScreenLoading extends ScreenBasic
         Globals.assets.load("texture/timer.png", Texture.class);
         Globals.assets.load("texture/devIcon.png", Texture.class);
         Globals.assets.load("sound/explode.ogg", Sound.class);
+        Globals.assets.load("sound/pop.ogg", Sound.class);
         Globals.assets.load("sound/explodeelectric.ogg", Sound.class);
+        Globals.assets.load("sound/giftExplode.ogg", Sound.class);
         Globals.assets.load("sound/explodeskull.ogg", Sound.class);
         Globals.assets.load("sound/bombkick.ogg", Sound.class);
         Globals.assets.load("sound/pupickup.ogg", Sound.class);

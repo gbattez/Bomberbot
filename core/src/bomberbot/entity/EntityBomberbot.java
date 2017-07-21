@@ -13,7 +13,7 @@ import bomberbot.screen.ScreenIngame;
 
 public abstract class EntityBomberbot extends Entity {
     private byte firePower;
-    private byte bombs, maxbombs;
+    private byte bombs, skullBombs, maxBombCapacity;
     private boolean canKickBomb;
     private boolean canChainBomb;
     private boolean hasSkullBomb;
@@ -28,7 +28,7 @@ public abstract class EntityBomberbot extends Entity {
         moveSpeed = 0.4f;
         this.firePower = 2;
         this.bombs = 1;
-        this.maxbombs = 1;
+        this.maxBombCapacity = 1;
         this.canKickBomb = false;
         this.setDestructible(true);
 
@@ -91,11 +91,6 @@ public abstract class EntityBomberbot extends Entity {
         }
     }
 
-    public void setHasSkullBomb(boolean hasSkullBomb)
-    {
-        this.hasSkullBomb = hasSkullBomb;
-    }
-
     @Override
     public void render(float delta, SpriteBatch batch) {
         rightFootSprite.setPosition(pX + 10, (float) (pY - 25 + Math.sin(animTicks * 10) * 35));
@@ -123,6 +118,11 @@ public abstract class EntityBomberbot extends Entity {
         headSprite.draw(Globals.batch);
     }
 
+    public void addSkullBomb()
+    {
+        this.skullBombs++;
+    }
+
     public void addBomb()
     {
         this.bombs++;
@@ -130,7 +130,7 @@ public abstract class EntityBomberbot extends Entity {
 
     public void addMaxBomb()
     {
-        this.maxbombs++;
+        this.maxBombCapacity++;
     }
 
     @Override
@@ -158,9 +158,9 @@ public abstract class EntityBomberbot extends Entity {
         this.firePower++;
     }
 
-    public void setMaxFirePower()
+    public void addGoldenFirePower()
     {
-        this.firePower = 15;
+        this.firePower += 15;
     }
 
     public void dropBomb()
@@ -170,9 +170,10 @@ public abstract class EntityBomberbot extends Entity {
             if(!this.nodeOn.isBlocked())
             {
                 EntityBomb bomb = new EntityBomb(getPbX(), getPbY(), this);
-                if(bombs == maxbombs && hasSkullBomb)
+                if(skullBombs > 0)
                 {
                     bomb.setSkullBomb(true);
+                    this.skullBombs --;
                 }
                 bomb.spawnEntity();
                 bombs--;

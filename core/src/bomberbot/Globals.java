@@ -60,7 +60,7 @@ public class Globals
     {
         if(Globals.soundEnabled)
         {
-            assets.get("sound/" + name + ".ogg", Sound.class).play(volume, pitch, 1);
+            assets.get("sound/" + name + ".ogg", Sound.class).play(volume, pitch, 0);
         }
     }
 }

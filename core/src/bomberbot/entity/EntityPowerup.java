@@ -57,15 +57,28 @@ public class EntityPowerup extends Entity
                 case BOMB : bomberbot.addBomb(); bomberbot.addMaxBomb(); break;
                 case SPEED: bomberbot.addMoveSpeed(); break;
                 case KICK: bomberbot.setCanKickBomb(true); break;
-                case GOLDENFIRE: bomberbot.setMaxFirePower(); break;
+                case GOLDENFIRE: bomberbot.addGoldenFirePower(); break;
                 case CHAINBOMB: bomberbot.setCanChainBomb(true); break;
-                case BOMBSKULL: bomberbot.setHasSkullBomb(true); break;
+                case BOMBSKULL: bomberbot.addSkullBomb(); break;
             }
         }
     }
 
+    //COMMONDROPPERCENTAGE + RAREDROPPERCENTAGE ne doit pas dépasser 100
+    //Le pourcentage de drop épique = 100 - l'addition des deux valeurs
+    private final int COMMONDROPPERCENTAGE = 80;
+    private final int RAREDROPPERCENTAGE = 17;
     private EnumPowerup powerType;
 
+    public EntityPowerup(int pX, int pY)
+    {
+        super(pX, pY);
+        this.powerType = getRandomPowerup();
+        this.setDestructible(true);
+        this.textureSrc = powerType.getTextureSrc();
+    }
+
+    @Deprecated
     public EntityPowerup(int pX, int pY, EnumPowerup powerType)
     {
         super(pX, pY);
@@ -88,5 +101,26 @@ public class EntityPowerup extends Entity
                 this.deleteEntity();
             }
         }
+    }
+    public EnumPowerup getRandomPowerup()
+    {
+        int rarityRoll = rand.nextInt(100);
+
+        EnumPowerup powerupToDrop = null;
+
+        if(rarityRoll < COMMONDROPPERCENTAGE)
+        {
+            powerupToDrop = EnumPowerup.COMMONPOWERUPS.get(rand.nextInt(EnumPowerup.COMMONPOWERUPS.size()));
+        }
+        else if(rarityRoll < COMMONDROPPERCENTAGE + RAREDROPPERCENTAGE)
+        {
+            powerupToDrop = EnumPowerup.RAREPOWERUPS.get(rand.nextInt(EnumPowerup.RAREPOWERUPS.size()));
+        }
+        else
+        {
+            powerupToDrop = EnumPowerup.EPICPOWERUPS.get(rand.nextInt(EnumPowerup.EPICPOWERUPS.size()));
+        }
+
+        return powerupToDrop;
     }
 }

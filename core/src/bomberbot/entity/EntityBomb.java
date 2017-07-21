@@ -15,9 +15,9 @@ public class EntityBomb extends Entity
     private float texAddHeight = 0;
     private byte power;
 
-    public EntityBomb(int pX, int pY, EntityBomberbot owner)
+    public EntityBomb(int pbX, int pbY, EntityBomberbot owner)
     {
-        super(pX, pY);
+        super(pbX, pbY);
         this.textureSrc = "bomb";
         this.enableTicks = true;
         this.owner = owner;
@@ -27,9 +27,9 @@ public class EntityBomb extends Entity
         this.power = owner.getFirePower();
     }
 
-    public EntityBomb(int pX, int pY, byte power)
+    public EntityBomb(int pbX, int pbY, byte power)
     {
-        super(pX, pY);
+        super(pbX, pbY);
         this.textureSrc = "bomb";
         this.enableTicks = true;
         this.owner = null;
@@ -49,7 +49,7 @@ public class EntityBomb extends Entity
     {
         if(skullBomb)
         {
-            int firePower = owner.getFirePower() >= 15 ? 3 : 2;
+            int firePower = 2 + owner.getFirePower()/15;
 
             for(int i = -firePower; i < firePower + 1; i++)
             {
@@ -68,6 +68,8 @@ public class EntityBomb extends Entity
         if(this.owner != null)
         {
             this.owner.addBomb();
+            if(this.skullBomb)
+                this.owner.addSkullBomb();
         }
         Globals.playSound(this.skullBomb ? "explodeskull" : "explode", 0.8f, 0.8f + rand.nextFloat() * 0.4f);
    }

@@ -212,7 +212,6 @@ public class EntityAI extends EntityBomberbot
         boolean foundSecureNode = false;
         while(searchDistance < 14 && !foundSecureNode)
         {
-            System.out.println(System.currentTimeMillis() + "Searching..." + searchDistance);
             for(int i = -searchDistance; i <= searchDistance; i++)
             {
                 for(int j = -searchDistance; j <= searchDistance; j++)
@@ -349,6 +348,10 @@ public class EntityAI extends EntityBomberbot
             ScreenIngame.player.getScore().addKillScore();
         }
         ScreenIngame.aiNumber --;
+
+        if(ScreenIngame.aiNumber == 0)
+            ScreenIngame.player.setDestructible(false);
+
         super.onDeath();
     }
 
