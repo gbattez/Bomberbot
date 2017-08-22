@@ -43,7 +43,7 @@ public class EntityGiftBomb extends Entity
                 int powerupX = this.getPbX() + i;
                 int powerupY = this.getPbY() + j;
 
-                if(ScreenIngame.nodes[powerupX][powerupY].isBlocked() || rand.nextBoolean())
+                if(ScreenIngame.nodes[powerupX][powerupY].isBlocked() || rand.nextFloat() < 0.2f)
                     continue;
 
                 new EntityPowerup(powerupX, powerupY).spawnEntity();
