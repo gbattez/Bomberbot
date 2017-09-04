@@ -111,7 +111,8 @@ public class EntityAI extends EntityBomberbot
             {
                 if(this.getNearbyBomberbot() instanceof EntityPlayer)
                 {
-                    this.dropBomb();
+                    if(this.rand.nextInt(10) == 0)
+                        this.dropBomb();
                 }
                 else if(this.rand.nextInt(20) == 0)
                 {
