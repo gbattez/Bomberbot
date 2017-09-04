@@ -215,14 +215,30 @@ public class Node
         {
             return true;
         }
-        for(Entity entity1 : entityList)
+        for(Entity entity : entityList)
         {
-            if(entity1.isMovementBlocker())
+            if(entity.isMovementBlocker())
             {
                 return true;
             }
         }
         return false;
+    }
+
+    public Entity getBlockingEntity()
+    {
+        if(this.blockOn.isMovementBlocker())
+        {
+            return this.blockOn;
+        }
+        for(Entity entity : entityList)
+        {
+            if(entity.isMovementBlocker())
+            {
+                return entity;
+            }
+        }
+        return null;
     }
 
     public Node(int nX, int nY)

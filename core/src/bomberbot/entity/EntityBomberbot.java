@@ -57,7 +57,9 @@ public abstract class EntityBomberbot extends Entity {
             this.bodyAngle = (float) Math.sin(animTicks * 10) * 16;
             if (this.canKickBomb) {
                 EntityBomb bomb = this.getAdjacentNode(this.getMovingDirection()).getBomb();
-                if (bomb != null && getDistanceInPixels(bomb) < Globals.BLOCK_HEIGHT && bomb.getMovingDirection() != this.getMovingDirection() && !bomb.isExploded()) {
+                if (bomb != null && !this.getAdjacentNode(this.getMovingDirection(), (byte)2).isBlocked()
+                        && getDistanceInPixels(bomb) < Globals.BLOCK_HEIGHT && bomb.getMovingDirection() != this.getMovingDirection()
+                        && !bomb.isExploded()) {
                     Globals.playSound("bombkick", 1f, 0.8f + rand.nextFloat() * 0.2f);
                     bomb.move(this.getMovingDirection());
                 }

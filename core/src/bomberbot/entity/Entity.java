@@ -162,24 +162,50 @@ public abstract class Entity
 
     public Node getAdjacentNode(EnumDirection direction, byte distance)
     {
-        switch (direction)
+        try {
+            switch (direction) {
+                case NORTH:
+                    if (this.getPbY() + distance < 11)
+                        return ScreenIngame.nodes[this.getPbX()][this.getPbY() + distance];
+                case EAST:
+                    if (this.getPbX() + distance < 20)
+                        return ScreenIngame.nodes[this.getPbX() + distance][this.getPbY()];
+                case SOUTH:
+                    if (this.getPbY() - distance >= 0)
+                        return ScreenIngame.nodes[this.getPbX()][this.getPbY() - distance];
+                case WEST:
+                    if (this.getPbX() - distance >= 0)
+                        return ScreenIngame.nodes[this.getPbX() - distance][this.getPbY()];
+            }
+        } catch(ArrayIndexOutOfBoundsException e)
         {
-            case NORTH : if(this.getPbY() + distance < 11) return ScreenIngame.nodes[this.getPbX()][this.getPbY() + distance];
-            case EAST : if(this.getPbX() + distance < 20) return ScreenIngame.nodes[this.getPbX() + distance][this.getPbY()];
-            case SOUTH : if(this.getPbY() - distance >= 0) return ScreenIngame.nodes[this.getPbX()][this.getPbY() - distance];
-            case WEST : if(this.getPbX() - distance >= 0) return ScreenIngame.nodes[this.getPbX() - distance][this.getPbY()];
+            this.deleteEntity();
+            return null;
         }
         return null;
     }
 
     public Node getAdjacentNode(EnumDirection direction)
     {
-        switch (direction)
+        try {
+            switch (direction) {
+                case NORTH:
+                    if (this.getPbY() + 1 < 11)
+                        return ScreenIngame.nodes[this.getPbX()][this.getPbY() + 1];
+                case EAST:
+                    if (this.getPbX() + 1 < 20)
+                        return ScreenIngame.nodes[this.getPbX() + 1][this.getPbY()];
+                case SOUTH:
+                    if (this.getPbY() - 1 >= 0)
+                        return ScreenIngame.nodes[this.getPbX()][this.getPbY() - 1];
+                case WEST:
+                    if (this.getPbX() - 1 >= 0)
+                        return ScreenIngame.nodes[this.getPbX() - 1][this.getPbY()];
+            }
+        } catch(ArrayIndexOutOfBoundsException e)
         {
-            case NORTH : if(this.getPbY() + 1 < 11) return ScreenIngame.nodes[this.getPbX()][this.getPbY() + 1];
-            case EAST : if(this.getPbX() + 1 < 20) return ScreenIngame.nodes[this.getPbX() + 1][this.getPbY()];
-            case SOUTH : if(this.getPbY() - 1 >= 0) return ScreenIngame.nodes[this.getPbX()][this.getPbY() - 1];
-            case WEST : if(this.getPbX() - 1 >= 0) return ScreenIngame.nodes[this.getPbX() - 1][this.getPbY()];
+            this.deleteEntity();
+            return null;
         }
         return null;
     }

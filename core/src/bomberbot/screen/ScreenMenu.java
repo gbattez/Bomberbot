@@ -18,7 +18,7 @@ public class ScreenMenu extends ScreenBasic
         Globals.music = Globals.getMusic("musicmenu2");
         Globals.music.setVolume(0.4f);
         Globals.music.setLooping(true);
-        //Globals.music.play();
+        Globals.music.play();
 
         //On initialise les bouttons
         ScreenIngame.font.getData().setScale(3);

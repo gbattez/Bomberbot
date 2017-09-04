@@ -1,6 +1,7 @@
 package bomberbot.entity;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -19,12 +20,34 @@ public class EntityAI extends EntityBomberbot
     private List<Node> path = new CopyOnWriteArrayList<Node>();
     private EnumDirection directionToPath;
     private boolean pathNotFound;
+    private boolean isHardMode;
+    private float huntingPlayerTimer;
 
     public EntityAI(int pX, int pY, Color color)
     {
         super(pX, pY, color);
+        this.isHardMode = true;
         this.directionToPath = EnumDirection.NONE;
         this.nodesCopy = ScreenIngame.nodes;
+
+        if(this.isHardMode)
+        {
+            this.setCanKickBomb(true);
+            this.addMoveSpeed();
+            this.addBomb();
+        }
+    }
+
+    public boolean isBlocked(Node n)
+    {
+        return this.isHardMode ? n.getBlockingEntity() != null && !(n.getBlockingEntity() instanceof EntityBomb)
+                : n.getBlockingEntity() != null;
+    }
+
+    @Override
+    public void render(float delta, SpriteBatch batch)
+    {
+        super.render(delta, batch);
     }
 
     @Override
@@ -49,72 +72,54 @@ public class EntityAI extends EntityBomberbot
             {
                pathNotFound = false;
             }
-            this.waitBeforeMove -= delta;
+            if(this.huntingPlayerTimer > 0)
+            {
+                this.huntingPlayerTimer -= delta;
+            }
             if(this.waitBeforeMove > 0)
             {
+                this.waitBeforeMove -= delta;
                 return;
             }
 
             this.targetNode = null;
             this.path.clear();
-            if (rand.nextInt(200) == 0)
+            if (rand.nextInt(this.isHardMode ? 130 : 200) == 0)
             {
                 randMove = rand.nextInt(4);
             }
-            switch (randMove)
+
+            if(this.isHardMode && rand.nextInt(10 + ScreenIngame.bricks*5 + ScreenIngame.aiNumber*40) == 0)
             {
-                case 0:
-                {
-                    if (shouldChangeDirection(EnumDirection.EAST))
-                    {
-                        randMove = (rand.nextInt(3) + 1) % 4;
-                    } else
-                    {
-                        this.move(EnumDirection.EAST);
-                    }
-                }
-                break;
-                case 1:
-                {
-                    if (shouldChangeDirection(EnumDirection.WEST))
-                    {
-                        randMove = (rand.nextInt(3) + 2) % 4;
-                    } else
-                    {
-                        this.move(EnumDirection.WEST);
-                    }
-                }
-                break;
-                case 2:
-                {
-                    if (shouldChangeDirection(EnumDirection.NORTH))
-                    {
-                        randMove = (rand.nextInt(3) + 3) % 4;
-                    } else
-                    {
-                        this.move(EnumDirection.NORTH);
-                    }
-                }
-                break;
-                case 3:
-                {
-                    if (shouldChangeDirection(EnumDirection.SOUTH))
-                    {
-                        randMove = (rand.nextInt(3) + 4) % 4;
-                    } else
-                    {
-                        this.move(EnumDirection.SOUTH);
-                    }
-                }
-                break;
+                this.huntingPlayerTimer = 5 + rand.nextInt(4);
             }
 
-            //DROP BOMB
-            if (this.isBomberBotNearby())
+            if(this.huntingPlayerTimer > 0)
             {
-                this.dropBomb();
+                this.targetNode = ScreenIngame.player.nodeOn;
+                this.doAStar(this.targetNode);
+                this.moveToPath();
             }
 
+            if(path.size() == 0)
+            {
+                moveRandomly();
+            }
+
+            //DROP BOMB AGAINST BOMBERBOTS
+            if(this.getNearbyBomberbot() != null)
+            {
+                if(this.getNearbyBomberbot() instanceof EntityPlayer)
+                {
+                    this.dropBomb();
+                }
+                else if(this.rand.nextInt(20) == 0)
+                {
+                    this.dropBomb();
+                }
+            }
+
+            //DROP BOMB AGAINST BRICKS
             for (EnumDirection directions : EnumDirection.values())
             {
                 if (directions != EnumDirection.NONE && directions != EnumDirection.ALL)
@@ -124,13 +129,13 @@ public class EntityAI extends EntityBomberbot
                     {
                         for(EnumDirection curDirection : EnumDirection.values())
                         {
-                            for(byte i = 0; i < this.getFirePower()+1; i++)
+                            for(byte i = 0; i < this.getFirePower()+2; i++)
                             {
                                 Node adjacentNode = this.getAdjacentNode(curDirection, i);
 
                                 if(adjacentNode != null)
                                 {
-                                    if(adjacentNode.isBlocked())
+                                    if(isBlocked(adjacentNode))
                                     {
                                         break;
                                     }
@@ -149,17 +154,23 @@ public class EntityAI extends EntityBomberbot
         //DANGER
         else
         {
-            if(targetNode == null)
+            if(targetNode == null || targetNode == ScreenIngame.player.nodeOn)
             {
-                if(pathNotFound)
+                if(this.isHardMode)
                 {
-                    if(rand.nextInt(40) == 0)
+                    this.searchSecureNode();
+                } else
+                {
+                    if (pathNotFound)
+                    {
+                        if (rand.nextInt(40) == 0)
+                        {
+                            searchSecureNode();
+                        }
+                    } else
                     {
                         searchSecureNode();
                     }
-                } else
-                {
-                    searchSecureNode();
                 }
             } else
             {
@@ -169,40 +180,90 @@ public class EntityAI extends EntityBomberbot
                 }
                 for(Node p : path)
                 {
-                    if(p.isBlocked())
+                    if(isBlocked(p))
                     {
                         targetNode = null;
                         break;
                     }
                 }
             }
-            if(path.size() > 0)
-            {
-                Node nodeToGo = path.get(path.size() - 1);
-                if(this.getPbX() > nodeToGo.getnX())
-                {
-                    directionToPath = EnumDirection.WEST;
-                }
-                if(this.getPbX() < nodeToGo.getnX())
-                {
-                    directionToPath = EnumDirection.EAST;
-                }
-                if(this.getPbY() > nodeToGo.getnY())
-                {
-                    directionToPath = EnumDirection.SOUTH;
-                }
-                if(this.getPbY() < nodeToGo.getnY())
-                {
-                    directionToPath = EnumDirection.NORTH;
-                }
-                move(directionToPath);
-                if(this.nodeOn == nodeToGo)
-                {
-                    path.remove(nodeToGo);
-                }
+            this.moveToPath();
+            this.waitBeforeMove = this.isHardMode ? 0 : 0.1f;
+        }
+    }
 
+    public void moveToPath()
+    {
+        if(path.size() > 0)
+        {
+            Node nodeToGo = path.get(path.size() - 1);
+            if(this.getPbX() > nodeToGo.getnX())
+            {
+                directionToPath = EnumDirection.WEST;
             }
-            this.waitBeforeMove = 0.1f;
+            if(this.getPbX() < nodeToGo.getnX())
+            {
+                directionToPath = EnumDirection.EAST;
+            }
+            if(this.getPbY() > nodeToGo.getnY())
+            {
+                directionToPath = EnumDirection.SOUTH;
+            }
+            if(this.getPbY() < nodeToGo.getnY())
+            {
+                directionToPath = EnumDirection.NORTH;
+            }
+
+            if(!this.isInDanger() && shouldChangeDirection(directionToPath))
+            {
+              //  this.huntingPlayerTimer = 0;
+               // path.clear();
+            }
+
+            move(directionToPath);
+
+            if(this.nodeOn == nodeToGo)
+            {
+                path.remove(nodeToGo);
+            }
+        }
+    }
+
+    public void moveRandomly()
+    {
+        switch (randMove) {
+            case 0: {
+                if (shouldChangeDirection(EnumDirection.EAST)) {
+                    randMove = (rand.nextInt(3) + 1) % 4;
+                } else {
+                    this.move(EnumDirection.EAST);
+                }
+            }
+            break;
+            case 1: {
+                if (shouldChangeDirection(EnumDirection.WEST)) {
+                    randMove = (rand.nextInt(3) + 2) % 4;
+                } else {
+                    this.move(EnumDirection.WEST);
+                }
+            }
+            break;
+            case 2: {
+                if (shouldChangeDirection(EnumDirection.NORTH)) {
+                    randMove = (rand.nextInt(3) + 3) % 4;
+                } else {
+                    this.move(EnumDirection.NORTH);
+                }
+            }
+            break;
+            case 3: {
+                if (shouldChangeDirection(EnumDirection.SOUTH)) {
+                    randMove = (rand.nextInt(3) + 4) % 4;
+                } else {
+                    this.move(EnumDirection.SOUTH);
+                }
+            }
+            break;
         }
     }
 
@@ -220,7 +281,7 @@ public class EntityAI extends EntityBomberbot
                     {
                         continue;
                     }
-                    if(!ScreenIngame.nodes[i+getPbX()][j+getPbY()].isBlocked() && !ScreenIngame.nodes[i+getPbX()][j+getPbY()].isDangerous())
+                    if(!isBlocked(ScreenIngame.nodes[i+getPbX()][j+getPbY()]) && !ScreenIngame.nodes[i+getPbX()][j+getPbY()].isDangerous())
                     {
                         Node nodeToTest = ScreenIngame.nodes[i+getPbX()][j+getPbY()];
                         doAStar(nodeToTest);
@@ -308,7 +369,8 @@ public class EntityAI extends EntityBomberbot
 
             for (Node n : neighbours)
             {
-                if(n.isBlocked() || closed.contains(n))
+                if((isInDanger() && (isBlocked(n) || closed.contains(n))) ||
+                        (!isInDanger() && (isBlocked(n) || closed.contains(n) || n.isDangerous())))
                 {
                     continue;
                 }
@@ -360,7 +422,7 @@ public class EntityAI extends EntityBomberbot
         return this.nodeOn.isDangerous();
     }
 
-    public boolean isBomberBotNearby()
+    public EntityBomberbot getNearbyBomberbot()
     {
         for (EnumDirection directions : EnumDirection.values())
         {
@@ -370,17 +432,17 @@ public class EntityAI extends EntityBomberbot
                 {
                     Node adjacentNode = this.getAdjacentNode(directions, distance);
 
-                    if(adjacentNode.isBlocked() || adjacentNode.isDangerous())
+                    if(isBlocked(adjacentNode))
                     {
                         break;
                     }
                     if(adjacentNode.getBomberbot() != null && adjacentNode.getBomberbot() != this)
                     {
-                        return true;
+                        return adjacentNode.getBomberbot();
                     }
                 }
             }
         }
-        return false;
+        return null;
     }
 }

@@ -83,7 +83,8 @@ public class EntityBomb extends Entity
             this.onDeath();
         }
 
-        if(this.isMoving() && this.getAdjacentNode(this.getMovingDirection()).getBomberbot() != null)
+        if(this.isMoving() && ( this.getAdjacentNode(this.getMovingDirection()).isBlocked()
+                || this.getAdjacentNode(this.getMovingDirection()).getBomberbot() != null ))
         {
             this.move(EnumDirection.NONE);
         }
