@@ -89,7 +89,7 @@ public class EntityAI extends EntityBomberbot
                 randMove = rand.nextInt(4);
             }
 
-            if(this.isHardMode && rand.nextInt(10 + ScreenIngame.bricks*5 + ScreenIngame.aiNumber*40) == 0)
+            if(this.isHardMode && rand.nextInt(Math.abs(10 + ScreenIngame.bricks*5 + ScreenIngame.aiNumber*40)) == 0)
             {
                 this.huntingPlayerTimer = 5 + rand.nextInt(4);
             }
